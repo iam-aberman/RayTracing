@@ -3,4 +3,4 @@ project(RayTracing)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(RayTracing main.cpp Primitives.cpp Primitives.h Plane.cpp Plane.h DoubleComparison.h Utilities.cpp Utilities.h StageObjects.cpp StageObjects.h)
+add_executable(RayTracing main.cpp primitives.cpp primitives.h plane.cpp plane.h DoubleComparison.h utilities.cpp utilities.h scene_objects.cpp scene_objects.h)

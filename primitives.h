@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-namespace Geometry {
+namespace Geometry3D {
 
     struct Primitive {
 
@@ -52,14 +52,19 @@ namespace Geometry {
 
     };
 
+    Vector Normalize(const Vector& v);
+
     class Ray {
     public:
 
         Ray(const Point& start, const Vector& direction);
 
+        const Point& getOrigin() const;
+        const Vector& getDirection() const;
+
     private:
 
-        const Point  start_;
+        const Point  origin_;
         const Vector direction_;
 
     };

@@ -2,13 +2,13 @@
 // Created by Osip on 2020-04-29.
 //
 
-#include "Primitives.h"
+#include "primitives.h"
 #include "DoubleComparison.h"
 
 #include <array>
 #include <cmath>
 
-namespace Geometry {
+namespace Geometry3D {
 
     Primitive::Primitive(char type) : x_(0.), y_(0.), z_(0.), type_(type)
     {
@@ -64,10 +64,25 @@ namespace Geometry {
         return sqrt(x_ * x_ + y_ * y_ + z_ * z_);
     }
 
+    Vector Normalize(const Vector& v) {
+        Vector temp(v);
+        temp.Normalize();
+
+        return temp;
+    }
+
     Ray::Ray(const Point& start, const Vector& direction) :
-    start_(start),
-    direction_(direction)
+            origin_(start),
+            direction_(Normalize(direction))
     {
+    }
+
+    const Point& Ray::getOrigin() const {
+        return origin_;
+    }
+
+    const Vector& Ray::getDirection() const {
+        return direction_;
     }
 
 }

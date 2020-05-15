@@ -2,16 +2,16 @@
 // Created by Osip on 2020-05-02.
 //
 
-#ifndef RAYTRACING_STAGEOBJECTS_H
-#define RAYTRACING_STAGEOBJECTS_H
+#ifndef RAYTRACING_SCENE_OBJECTS_H
+#define RAYTRACING_SCENE_OBJECTS_H
 
-#include "Primitives.h"
-#include "Plane.h"
+#include "primitives.h"
+#include "plane.h"
 
 #include <array>
 #include <optional>
 
-namespace Geometry {
+namespace Geometry3D {
 
     class Object {
     public:
@@ -92,4 +92,4 @@ namespace Geometry {
 }
 
 
-#endif //RAYTRACING_STAGEOBJECTS_H
+#endif //RAYTRACING_SCENE_OBJECTS_H

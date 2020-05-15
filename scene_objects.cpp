@@ -2,9 +2,12 @@
 // Created by Osip on 2020-05-02.
 //
 
-#include "StageObjects.h"
+#include "scene_objects.h"
+#include "utilities.h"
 
-namespace Geometry {
+#include <cmath>
+
+namespace Geometry3D {
 
     Sphere::Sphere(const Point& centre, double radius) :
     centre_(centre),
@@ -18,6 +21,37 @@ namespace Geometry {
 
     double Sphere::getRadius() const {
         return radius_;
+    }
+
+    std::optional<Point> Sphere::Intersect(const Ray& ray) const {
+        Vector sphere_to_origin = ray.getOrigin() - centre_;
+
+        // t^2 * (dir*dir) + t * ((origin - centre)*dir) +
+        // ((origin - centre)*(origin - centre)) - r^2 = 0;
+        // A * t^2 + B * t + C = 0;
+        // Since ray_direction is normalized, A = 1;
+        double B = 2. * ScalarProduct(sphere_to_origin, ray.getDirection());
+        double C = ScalarProduct(sphere_to_origin, sphere_to_origin) - radius_ * radius_;
+        double discriminant = B * B - 4 * C;
+
+        if (discriminant < 0) {
+            return std::nullopt;
+        } else {
+            const double discriminantRoot = sqrt(discriminant);
+            double t_1 = (- B + discriminantRoot) / 2.;
+            double t_2 = (- B - discriminantRoot) / 2.;
+
+            double min_t = std::min(t_1, t_2);
+            double max_t = std::max(t_1, t_2);
+
+            double tRes = (min_t >= 0) ? min_t : max_t;
+            if (tRes < 0) {
+                return std::nullopt;
+            } else {
+                std::cout << tRes << std::endl;
+                return ray.getOrigin() + (ray.getDirection() * tRes);
+            }
+        }
     }
 
     Box::Box(const Point& minPoint, const Point& maxPoint) {
@@ -50,6 +84,10 @@ namespace Geometry {
         return surfaces_;
     }
 
+    std::optional<Point> Box::Intersect(const Ray& ray) const {
+        return std::nullopt;
+    }
+
     Tetrahedron::Tetrahedron(const Point& A, const Point& B,
                              const Point& C, const Point& D) :
                              vertices_({A, B, C, D}) {
@@ -65,6 +103,12 @@ namespace Geometry {
 
     const std::array<Plane, 4>& Tetrahedron::getSurfaces() const {
         return surfaces_;
+    }
+
+    std::optional<Point> Tetrahedron::Intersect(const Ray &ray) const {
+        return std::nullopt;
+
+
     }
 
 }

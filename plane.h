@@ -5,11 +5,11 @@
 #ifndef RAYTRACING_PLANE_H
 #define RAYTRACING_PLANE_H
 
-#include "Primitives.h"
+#include "primitives.h"
 
 #include <array>
 
-namespace Geometry {
+namespace Geometry3D {
 
     class Plane {
     public:

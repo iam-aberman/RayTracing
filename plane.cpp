@@ -2,10 +2,10 @@
 // Created by Osip on 2020-04-29.
 //
 
-#include "Plane.h"
-#include "Utilities.h"
+#include "plane.h"
+#include "utilities.h"
 
-namespace Geometry {
+namespace Geometry3D {
 
     Plane::Plane(const Point& f, const Point& s, const Point& t) {
         Vector v1(f, s), v2(f, t);

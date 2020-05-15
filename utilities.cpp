@@ -2,13 +2,13 @@
 // Created by Osip on 2020-05-02.
 //
 
-#include "Utilities.h"
+#include "utilities.h"
 #include "DoubleComparison.h"
 
 #include <array>
 #include <algorithm>
 
-namespace Geometry {
+namespace Geometry3D {
 
     std::ostream& operator<<(std::ostream& os, const Primitive& primitive) {
         char begin, end;
@@ -45,11 +45,19 @@ namespace Geometry {
         return is;
     }
 
-    Vector Normalize(const Vector& v) {
-        Vector temp(v);
-        temp.Normalize();
+    Point operator+(const Point& point, const Vector& vector) {
+        return Point(point.x_ + vector.x_,
+                     point.y_ + vector.y_,
+                     point.z_ + vector.z_);
+    }
 
-        return temp;
+    Vector operator-(const Point& end, const Point& begin) {
+        return Vector(begin, end);
+    }
+
+    Vector operator*(const Vector& v, double lambda) {
+        return Vector(lambda * v.x_, lambda * v.y_, lambda * v.z_);
+
     }
 
     bool NullVector(const Vector& v) {
@@ -83,12 +91,6 @@ namespace Geometry {
         }
 
         return true;
-    }
-
-    double ScalarProduct(const Vector& lhs, const Vector& rhs) {
-        return lhs.x_ * rhs.x_ +
-               lhs.y_ * rhs.y_ +
-               lhs.z_ * rhs.z_;
     }
 
     std::ostream& operator<<(std::ostream& os, const Plane& surface) {
