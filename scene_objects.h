@@ -22,13 +22,6 @@ namespace Geometry3D {
 
     };
 
-    template <typename T>
-    class Collider : public Object {
-
-
-
-    };
-
     class Sphere : public Object {
     public:
 

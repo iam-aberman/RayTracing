@@ -25,11 +25,7 @@ namespace Geometry3D {
 
     std::optional<Point> Sphere::Intersect(const Ray& ray) const {
         Vector sphere_to_origin = ray.getOrigin() - centre_;
-
-        // t^2 * (dir*dir) + t * ((origin - centre)*dir) +
-        // ((origin - centre)*(origin - centre)) - r^2 = 0;
-        // A * t^2 + B * t + C = 0;
-        // Since ray_direction is normalized, A = 1;
+        
         double B = 2. * ScalarProduct(sphere_to_origin, ray.getDirection());
         double C = ScalarProduct(sphere_to_origin, sphere_to_origin) - radius_ * radius_;
         double discriminant = B * B - 4 * C;
