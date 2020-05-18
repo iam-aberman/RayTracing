@@ -32,6 +32,12 @@ namespace Geometry3D {
         double getRadius() const;
 
         std::optional<Point> Intersect(const Ray& ray) const override;
+        /*
+         * Theoretically, if a ray intersects a box, it must intersect exactly two of its planes,
+         * if only the origin is not inside the box. We can calculate intersections with box planes,
+         * choose the closest one. However, this will require 12 ray-triangle intersections for every ray,
+         * which is a lot.
+         */
 
 
     private:

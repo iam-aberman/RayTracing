@@ -44,7 +44,6 @@ namespace Geometry3D {
             if (tRes < 0) {
                 return std::nullopt;
             } else {
-                std::cout << tRes << std::endl;
                 return ray.getOrigin() + (ray.getDirection() * tRes);
             }
         }
@@ -76,7 +75,7 @@ namespace Geometry3D {
         return vertices_;
     }
 
-    const std::array<Plane, 6> &Box::getSurfaces() const {
+    const std::array<Plane, 6>& Box::getSurfaces() const {
         return surfaces_;
     }
 
