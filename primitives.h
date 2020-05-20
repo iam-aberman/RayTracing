@@ -6,6 +6,7 @@
 #define RAYTRACING_GEOMETRY_H
 
 #include <iostream>
+#include <array>
 
 namespace Geometry3D {
 
@@ -26,6 +27,10 @@ namespace Geometry3D {
         Primitive(const Primitive& other) = default;
         Primitive& operator=(const Primitive& other);
 
+        std::array<double, 3> getNums() const { // Intended to be inline
+            return {x_, y_, z_};
+        }
+
     };
 
     struct Point : public Primitive {
@@ -43,6 +48,10 @@ namespace Geometry3D {
         Vector();
         Vector(double x, double y, double z);
         Vector(const Point& begin, const Point& end);
+        Vector(const std::array<double, 4>& coefs);
+
+        // This is for casting purposes
+        Vector(const Point& other);
 
         Vector(const Vector& other) = default;
         using Primitive::operator=;
@@ -53,16 +62,11 @@ namespace Geometry3D {
     };
 
     Vector Normalize(const Vector& v);
+    Vector operator-(const Vector& v);
 
-    class Ray {
-    public:
+    struct Ray {
 
-        Ray(const Point& start, const Vector& direction);
-
-        const Point& getOrigin() const;
-        const Vector& getDirection() const;
-
-    private:
+        Ray(const Point& origin, const Vector& direction);
 
         const Point  origin_;
         const Vector direction_;

@@ -10,8 +10,13 @@
 
 #include <array>
 #include <optional>
+#include <cmath>
 
 namespace Geometry3D {
+
+    std::optional<Point> RayPlaneIntersection(const Ray& ray, const Plane& plane);
+    std::optional<double> RayTriangleIntersection(const Ray& ray,
+                                                 const std::array<Point, 3>& vertices);
 
     class Object {
     public:
@@ -19,7 +24,6 @@ namespace Geometry3D {
         virtual ~Object() = default;
 
         virtual std::optional<Point> Intersect(const Ray& ray) const = 0;
-
     };
 
     class Sphere : public Object {
@@ -32,13 +36,6 @@ namespace Geometry3D {
         double getRadius() const;
 
         std::optional<Point> Intersect(const Ray& ray) const override;
-        /*
-         * Theoretically, if a ray intersects a box, it must intersect exactly two of its planes,
-         * if only the origin is not inside the box. We can calculate intersections with box planes,
-         * choose the closest one. However, this will require 12 ray-triangle intersections for every ray,
-         * which is a lot.
-         */
-
 
     private:
 
@@ -53,17 +50,11 @@ namespace Geometry3D {
         Box() = delete;
         Box(const Point& minPoint, const Point& maxPoint);
 
-        const std::array<Point, 8>& getVertices() const;
-        const std::array<Plane, 6>& getSurfaces() const;
-
         std::optional<Point> Intersect(const Ray& ray) const override;
-
-
 
     private:
 
-        std::array<Point, 8> vertices_;
-        std::array<Plane, 6> surfaces_;
+        const Point minVertex_, maxVertex_;
 
     };
 
@@ -79,14 +70,14 @@ namespace Geometry3D {
 
         std::optional<Point> Intersect(const Ray& ray) const override;
 
-
     private:
 
         std::array<Point, 4> vertices_;
         std::array<Plane, 4> surfaces_;
 
-
     };
+
+    // std::optional<Point> RayBox(const Box& box, const Ray& ray);
 
 }
 

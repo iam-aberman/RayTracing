@@ -22,10 +22,12 @@ namespace Geometry3D {
         std::array<double, 4> getCoefs() const;
         Vector getNormal() const;
 
+
+        double A_, B_, C_, D_;
     private:
 
         // Ax + By + Cz + D = 0
-        double A_, B_, C_, D_;
+        // double A_, B_, C_, D_;
 
     };
 

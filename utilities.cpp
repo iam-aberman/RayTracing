@@ -3,7 +3,6 @@
 //
 
 #include "utilities.h"
-#include "DoubleComparison.h"
 
 #include <array>
 #include <algorithm>

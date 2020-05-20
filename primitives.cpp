@@ -3,7 +3,6 @@
 //
 
 #include "primitives.h"
-#include "DoubleComparison.h"
 
 #include <array>
 #include <cmath>
@@ -52,6 +51,16 @@ namespace Geometry3D {
         z_ = end.z_ - begin.z_;
     }
 
+    Vector::Vector(const std::array<double, 4>& coefs) : Primitive('V') {
+        x_ = coefs[0];
+        y_ = coefs[1];
+        z_ = coefs[2];
+    }
+
+    Vector::Vector(const Point& other) : Primitive(other)
+    {
+    }
+
     void Vector::Normalize() {
         const double curLen = getAbs();
 
@@ -71,18 +80,22 @@ namespace Geometry3D {
         return temp;
     }
 
-    Ray::Ray(const Point& start, const Vector& direction) :
-            origin_(start),
+    Vector operator-(const Vector& v) {
+        return Vector(-v.x_, -v.y_, -v.z_);
+    }
+
+    Ray::Ray(const Point& origin, const Vector& direction) :
+            origin_(origin),
             direction_(Normalize(direction))
     {
     }
 
-    const Point& Ray::getOrigin() const {
+   /*  const Point& Ray::getOrigin() const {
         return origin_;
     }
 
     const Vector& Ray::getDirection() const {
         return direction_;
     }
-
+*/
 }
