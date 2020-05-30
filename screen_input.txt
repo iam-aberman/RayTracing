@@ -1,0 +1,7 @@
+camera 0 0 0
+distance 5
+alpha 90
+normal 1 0 0
+yAxis 0 0 1
+dimensions 1000 1000
+light 0 -5 5
