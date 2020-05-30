@@ -8,10 +8,12 @@
 #include "lighting.h"
 #include "profiler.h"
 
+#include <omp.h>
 #include <cmath>
 #include <fstream>
 #include <future>
 #include <functional>
+#include <vector>
 
 #ifndef PI
 #define PI 3.14159265
@@ -48,7 +50,7 @@ Screen LoadScreenParameters(const std::string& filename) {
         } else if (tmp == "light") {
             inputFile >> newScreen.light_;
         } else {
-                throw std::runtime_error("Invalid data format");
+            throw std::runtime_error("Invalid data format");
         }
     }
 
@@ -61,12 +63,33 @@ Screen LoadScreenParameters(const std::string& filename) {
 }
 
 void RenderSingleThread(const Screen& screen, const std::vector<std::shared_ptr<Geometry3D::Object>>& objects,
-                               const Vector& xAxis, double pixel_dimension, const std::vector<RGB>& colors,
-                               Point start, size_t y0, size_t h,
-                               CImg<unsigned char>& image) {
+                        const Vector& xAxis, double pixel_dimension, const std::vector<RGB>& colors,
+                        Point start, size_t y0, size_t h,
+                        CImg<unsigned char>& image) {
+
+    std::vector<std::vector<Geometry3D::Point>> matrix(screen.width_);
+    for (auto& row : matrix) {
+        row.resize(h);
+    }
+
     for (size_t i = y0; i < y0 + h; ++i) {
         for (size_t j = 0; j < screen.width_; ++j) {
-            Ray curRay(screen.camera_, start - screen.camera_);
+            matrix[j][i] = start;
+            start = start + (-xAxis * pixel_dimension);
+        }
+        start = start + (-screen.yAxis_ * pixel_dimension);
+        if (i != y0 + h - 1) {
+            start = start + (xAxis * (pixel_dimension * screen.width_));
+        }
+    }
+
+    omp_set_num_threads(4);
+    omp_set_dynamic(0);
+
+#pragma omp parallel for shared(screen, objects, colors, image)
+    for (size_t i = y0; i < y0 + h; ++i) {
+        for (size_t j = 0; j < screen.width_; ++j) {
+            Ray curRay(screen.camera_, matrix[j][i]);
 
             for (size_t k = 0; k < 3; ++k) {
                 auto intersection = objects[k]->Intersect(curRay);
@@ -77,13 +100,6 @@ void RenderSingleThread(const Screen& screen, const std::vector<std::shared_ptr<
                     break;
                 }
             }
-
-            start = start + (-xAxis * pixel_dimension);
-        }
-
-        start = start + (-screen.yAxis_ * pixel_dimension);
-        if (i != y0 + h - 1) {
-            start = start + (xAxis * (pixel_dimension * screen.width_));
         }
     }
 }
@@ -108,47 +124,29 @@ void Render(const Screen& screen, const std::vector<std::shared_ptr<Geometry3D::
 
     Point minScreenPoint = screenCentre +
                            (xAxis * (screenWidth * pixel_dimension / 2.));
-          minScreenPoint = minScreenPoint +
-                           (screen.yAxis_ * (screenHeight * pixel_dimension/ 2.));
+    minScreenPoint = minScreenPoint +
+                     (screen.yAxis_ * (screenHeight * pixel_dimension/ 2.));
 
     Point minScreenPixelCentre = minScreenPoint +
                                  (-xAxis * (0.5 * pixel_dimension));
-          minScreenPixelCentre = minScreenPixelCentre +
-                                 (-screen.yAxis_ * (0.5 * pixel_dimension));
+    minScreenPixelCentre = minScreenPixelCentre +
+                           (-screen.yAxis_ * (0.5 * pixel_dimension));
 
     --screenHeight;
     --screenWidth;
 
     CImg<unsigned char> image(screenWidth, screenHeight, 1, 3, 255);
 
-    const size_t NUM_THREADS = 4;
-    std::vector<std::future<void>> futures_(NUM_THREADS);
+    /* const size_t NUM_THREADS = 4;
+    std::vector<std::future<void>> futures_(NUM_THREADS); */
 
     LOG_DURATION("MultiThread")
     {
-        size_t screen_height_part = (screenHeight + 1) / NUM_THREADS;
-        for (size_t i = 0; i < NUM_THREADS; ++i) {
-            Point start = minScreenPixelCentre + (-screen.yAxis_ *
-                                                  (static_cast<double>(i) * screenHeight * pixel_dimension /
-                                                   NUM_THREADS));
-            size_t y0 = i * (screenHeight + 1) / 4;
-            if (i == NUM_THREADS - 1) {
-                --screen_height_part;
-            }
-
-            futures_[i] = std::async(RenderSingleThread, std::ref(screen), std::ref(objects),
-                                     std::ref(xAxis), pixel_dimension, std::ref(colors),
-                                     start, y0, screen_height_part, std::ref(image));
-        }
-
-        for (auto &f : futures_) {
-            f.get();
-        }
+        RenderSingleThread(screen, objects, xAxis, pixel_dimension, colors, minScreenPixelCentre,
+                           0, screenHeight, image);
     }
 
     image.save_bmp("out.bmp");
 }
-
-
 
 #endif // PI
