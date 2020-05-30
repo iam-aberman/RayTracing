@@ -22,22 +22,4 @@ namespace Geometry3D {
 
         UpdateCoefs();
     }
-
-    void Plane::UpdateCoefs() {
-        if (A_ < 0) {
-            A_ *= -1;
-            B_ *= -1;
-            C_ *= -1;
-            D_ *= -1;
-        }
-    }
-
-    std::array<double, 4> Plane::getCoefs() const {
-        return {A_, B_, C_, D_};
-    }
-
-    Vector Plane::getNormal() const {
-        return Normalize({A_, B_, C_});
-    }
-
 }

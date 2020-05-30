@@ -5,13 +5,12 @@
 #include "scene_objects.h"
 #include "utilities.h"
 
-#include <cmath>
 #include <algorithm>
-#include <vector>
+#include <fstream>
 
 namespace Geometry3D {
 
-    std::optional<Point> RayPlaneIntersection(const Ray& ray, const Plane& plane) {
+    std::optional<Point> RayPlaneIntersection(const Ray &ray, const Plane &plane) {
         const auto coefs = plane.getCoefs();
         const Vector plane_normal = Vector(coefs);
         const double D = coefs[3];
@@ -30,8 +29,8 @@ namespace Geometry3D {
         }
     }
 
-    std::optional<double> RayTriangleIntersection(const Ray& ray,
-                                                 const std::array<Point, 3>& vertices) {
+    std::optional<double> RayTriangleIntersection(const Ray &ray,
+                                                  const std::array<Point, 3> &vertices) {
         const Vector E1 = vertices[1] - vertices[0],
                 E2 = vertices[2] - vertices[0],
                 P = CrossProduct(ray.direction_, E2);
@@ -46,29 +45,33 @@ namespace Geometry3D {
         Vector v1 = ray.origin_ - vertices[0];
         double u = ScalarProduct(v1, P) * invertedDet;
         if (u < 0 || u > 1) {
-            std::cerr << "U" << std::endl;
             return std::nullopt;
         }
 
         Vector v_2 = CrossProduct(v1, E1);
         double v = ScalarProduct(ray.direction_, v_2) * invertedDet;
         if (v < 0 || u + v > 1) {
-            std::cerr << "V" << std::endl;
             return std::nullopt;
         }
 
         double t = ScalarProduct(E2, v_2) * invertedDet;
-        // return ray.origin_ + (ray.direction_ * t);
-        return t;
+        if (t > 0 || Equal(t, 0.)) {
+            return t;
+        } else {
+            return std::nullopt;
+        }
     }
 
-    Sphere::Sphere(const Point& centre, double radius) :
-    centre_(centre),
-    radius_(radius)
-    {
+    Object::Object(char type) : type_(type) {
     }
 
-    const Point& Sphere::getCentre() const {
+    Sphere::Sphere(const Point &centre, double radius) :
+            Object('S'),
+            centre_(centre),
+            radius_(radius) {
+    }
+
+    const Point &Sphere::getCentre() const {
         return centre_;
     }
 
@@ -76,7 +79,7 @@ namespace Geometry3D {
         return radius_;
     }
 
-    std::optional<Point> Sphere::Intersect(const Ray& ray) const {
+    std::optional<Point> Sphere::Intersect(const Ray &ray) const {
         Vector sphere_to_origin = ray.origin_ - centre_;
 
         double B = 2. * ScalarProduct(sphere_to_origin, ray.direction_);
@@ -87,8 +90,8 @@ namespace Geometry3D {
             return std::nullopt;
         } else {
             const double discriminantRoot = sqrt(discriminant);
-            double t_1 = (- B + discriminantRoot) / 2.;
-            double t_2 = (- B - discriminantRoot) / 2.;
+            double t_1 = (-B + discriminantRoot) / 2.;
+            double t_2 = (-B - discriminantRoot) / 2.;
 
             double min_t = std::min(t_1, t_2);
             double max_t = std::max(t_1, t_2);
@@ -102,12 +105,16 @@ namespace Geometry3D {
         }
     }
 
-    Box::Box(const Point& minPoint, const Point& maxPoint) : minVertex_(minPoint),
-                                                             maxVertex_(maxPoint)
-    {
+    double Sphere::DistanceToPoint(const Point &point) const {
+        return sqrt(ScalarProduct(Vector(centre_, point), Vector(centre_, point)));
     }
 
-    std::optional<Point> Box::Intersect(const Ray& ray) const {
+    Box::Box(const Point &minPoint, const Point &maxPoint) : Object('B'),
+                                                             minVertex_(minPoint),
+                                                             maxVertex_(maxPoint) {
+    }
+
+    std::optional<Point> Box::Intersect(const Ray &ray) const {
         const auto ray_origin = ray.origin_.getNums();
         const auto ray_direction = ray.direction_.getNums();
 
@@ -117,14 +124,17 @@ namespace Geometry3D {
             throw std::runtime_error("Camera inside an object!");
         }
 
+        std::array<double, 3> minVert = {minVertex_.x_, minVertex_.y_, minVertex_.z_};
+        std::array<double, 3> maxVert = {maxVertex_.x_, maxVertex_.y_, maxVertex_.z_};
+
         double t_1, t_2;
         double t_near = std::numeric_limits<double>::min();
-        double t_far  = std::numeric_limits<double>::max();
+        double t_far = std::numeric_limits<double>::max();
 
         for (size_t i = 0; i < 3; ++i) {
             if (fabs(ray_direction[i]) > std::numeric_limits<double>::epsilon()) {
-                t_1 = (minVertex_.x_ - ray_origin[i]) / ray_direction[i];
-                t_2 = (maxVertex_.x_ - ray_origin[i]) / ray_direction[i];
+                t_1 = (minVert[i] - ray_origin[i]) / ray_direction[i];
+                t_2 = (maxVert[i] - ray_origin[i]) / ray_direction[i];
 
                 if (t_1 > t_2) {
                     std::swap(t_1, t_2);
@@ -156,21 +166,21 @@ namespace Geometry3D {
         }
     }
 
-    Tetrahedron::Tetrahedron(const Point& A, const Point& B,
-                             const Point& C, const Point& D) :
-                             vertices_({A, B, C, D}) {
-        surfaces_[0] = Plane(vertices_[0], vertices_[1], vertices_[2]);
-        surfaces_[1] = Plane(vertices_[1], vertices_[2], vertices_[3]);
-        surfaces_[0] = Plane(vertices_[0], vertices_[2], vertices_[3]);
-        surfaces_[0] = Plane(vertices_[0], vertices_[1], vertices_[3]);
+    double Box::DistanceToPoint(const Point &point) const {
+        Point centre = Point((minVertex_.x_ + maxVertex_.x_) / 2,
+                             (minVertex_.y_ + maxVertex_.y_) / 2,
+                             (minVertex_.z_ + maxVertex_.z_) / 2);
+
+        return sqrt(ScalarProduct(Vector(centre, point), Vector(centre, point)));
     }
 
-    const std::array<Point, 4>& Tetrahedron::getVertices() const {
+    Tetrahedron::Tetrahedron(const Point &A, const Point &B,
+                             const Point &C, const Point &D) :
+            Object('T'), vertices_({A, B, C, D}) {
+    }
+
+    const std::array<Point, 4> &Tetrahedron::getVertices() const {
         return vertices_;
-    }
-
-    const std::array<Plane, 4>& Tetrahedron::getSurfaces() const {
-        return surfaces_;
     }
 
     std::optional<Point> Tetrahedron::Intersect(const Ray &ray) const {
@@ -190,9 +200,8 @@ namespace Geometry3D {
         }
 
         std::vector<double> parameters;
-        parameters.reserve(4u);
-        for (auto& item : Intersections) {
-            std::cerr << item.has_value() << std::endl;
+        parameters.reserve(4);
+        for (auto &item : Intersections) {
             if (item.has_value()) {
                 parameters.push_back(item.value());
             }
@@ -206,53 +215,55 @@ namespace Geometry3D {
         }
     }
 
-    /* std::optional<Point> RayBox(const Box& box, const Ray& ray) {
-        const auto ray_origin = ray.origin_.getNums();
-        const auto ray_direction = ray.direction_.getNums();
+    double Tetrahedron::DistanceToPoint(const Point& point) const {
+        std::array<double, 3> sums_ = {
+            vertices_[0].x_ + vertices_[1].x_ + vertices_[2].x_ + vertices_[3].x_,
+            vertices_[0].y_ + vertices_[1].y_ + vertices_[2].y_ + vertices_[3].y_,
+            vertices_[0].z_ + vertices_[1].z_ + vertices_[2].z_ + vertices_[3].z_
+        };
 
-        if (box.minVertex_.x_ <= ray_origin[0] && ray_origin[0] <= box.maxVertex_.x_ &&
-                box.minVertex_.y_ <= ray_origin[1] && ray_origin[1] <= box.maxVertex_.y_ &&
-                box.minVertex_.z_ <= ray_origin[2] && ray_origin[2] <= box.maxVertex_.z_) {
-            throw std::runtime_error("Camera inside an object!");
-        }
+        Point centre = Point(sums_[0] / 5., sums_[1] / 5., sums_[2] / 5.);
+        return sqrt(ScalarProduct(Vector(centre, point), Vector(centre, point)));
+    }
 
-        double t_1, t_2;
-        double t_near = std::numeric_limits<double>::min();
-        double t_far  = std::numeric_limits<double>::max();
+}
 
-        for (size_t i = 0; i < 3; ++i) {
-            if (fabs(ray_direction[i]) > std::numeric_limits<double>::epsilon()) {
-                t_1 = (box.minVertex_.x_ - ray_origin[i]) / ray_direction[i];
-                t_2 = (box.maxVertex_.x_ - ray_origin[i]) / ray_direction[i];
 
-                if (t_1 > t_2) {
-                    std::swap(t_1, t_2);
-                }
-                if (t_1 > t_near) {
-                    t_near = t_1;
-                }
-                if (t_2 < t_far) {
-                    t_far = t_2;
-                }
 
-                if (t_near > t_far) {
-                    return std::nullopt;
-                }
-                if (t_far < 0.) {
-                    return std::nullopt;
-                }
-            } else {
-                if (ray_origin[i] < box.minVertex_.x_ || ray_origin[i] > box.maxVertex_.x_) {
-                    return std::nullopt;
-                }
-            }
-        }
+std::vector<std::shared_ptr<Geometry3D::Object>> LoadObjects(const std::string& filename) {
+    std::ifstream inputFile(filename);
+    if (!inputFile) {
+        throw std::runtime_error("No input file!");
+    }
 
-        if (t_near <= t_far && t_far >= 0) {
-            return ray.origin_ + ray.direction_ * t_near;
+    std::vector<std::shared_ptr<Geometry3D::Object>> objects;
+    objects.reserve(3);
+
+    for (std::string tmp; inputFile >> tmp; ) {
+        if (tmp == "sphere") {
+            Geometry3D::Point centre;
+            double radius;
+            inputFile >> centre >> radius;
+
+            objects.push_back(std::make_shared<Geometry3D::Sphere>(centre, radius));
+        } else if (tmp == "box") {
+            Geometry3D::Point minPoint, maxPoint;
+            inputFile >> minPoint >> maxPoint;
+
+            objects.push_back(std::make_shared<Geometry3D::Box>(minPoint, maxPoint));
+        } else if (tmp == "tetrahedron") {
+            Geometry3D::Point p1, p2, p3, p4;
+            inputFile >> p1 >> p2 >> p3 >> p4;
+
+            objects.push_back(std::make_shared<Geometry3D::Tetrahedron>(p1, p2, p3, p4));
         } else {
-            return std::nullopt;
+            throw std::runtime_error("Wrong object type");
         }
     }
-*/
+
+    if (objects.size() > 3) {
+        throw std::runtime_error("Too many objects");
+    }
+
+    return objects;
 }

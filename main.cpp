@@ -1,128 +1,52 @@
 #include <iostream>
-#include <fstream>
+#include <string>
 #include <vector>
-#include <future>
 
-#include "primitives.h"
-#include "scene_objects.h"
-#include "utilities.h"
-#include "CImg.h"
-#include "profiler.h"
+#include "screen.h"
 
-using namespace std;
 using namespace Geometry3D;
-using namespace cimg_library;
+
 
 int main () {
+    
+   const std::string screenInput  = "screen_input.txt",
+                     objectsInput = "objects_input.txt";
 
-    Point camera(0., 0., 0.);
+   Screen screen;
+   std::vector<std::shared_ptr<Object>> objects;
+   std::vector<RGB> colors = {
+           {255, 0, 0},
+           {0, 255, 0},
+           {0, 0, 255}
+   };
 
-    vector<vector<Point>> matrix(1000);
-    for (auto& row : matrix){
-        row.resize(1000);
-    }
+   try {
 
-    double y = -499.5, z = -499.5;
-    for (size_t i = 0; i < 1000; ++i) {
-        for (size_t j = 0; j < 1000; ++j){
-            matrix[i][j] = Point(10., y, z);
-           y += 1.0;
-        }
+       screen = LoadScreenParameters(screenInput);
+       objects = LoadObjects(objectsInput);
 
-        z += 1.0;
-        y = -249.5;
-    }
+   } catch (const std::exception& e) {
+       std::cerr << e.what() << std::endl;
+       return -1;
+   }
 
+   {
+       std::vector<double> distance_to_object(3);
+       for (size_t i = 0; i < 3; ++i) {
+           distance_to_object[i] = objects[i]->DistanceToPoint(screen.camera_);
+       }
 
+       // Bubble sort two vectors
+       for (size_t i = 0; i < 3; ++i) {
+           for (size_t j = 1; j < 3; ++j) {
+               if (distance_to_object[i - 1] > distance_to_object[i]) {
+                   std::swap(objects[i - 1], objects[i]);
+               }
+           }
+       }
+   }
 
-    Point minPoint(15, -400, -350);
-    Point maxPoint(250, 300, 300);
-    Box b(minPoint, maxPoint);
-
-    CImg<unsigned char> image(1000, 1000, 1, 3, 0);
-
-    unsigned char color[3] = {0, 255, 0};
-    LOG_DURATION("Rendering")
-    {
-        vector<future<void>> futures_;
-
-        auto f = async ( [&matrix, &b, &camera, &image, &color] {
-            for (size_t i = 0; i < 1000; ++i) {
-                for (size_t j = 0; j < 1000; ++j) {
-                    Vector v = matrix[i][j] - camera;
-                    Ray ray(camera, v);
-
-                    if (b.Intersect(ray).has_value()) {
-                        // cout << "YES" << endl;
-                        image.draw_point(i, j, color);
-                    }
-                }
-            }
-        }); /*
-
-        auto g = async ( [&matrix, &b, &camera, &image, &color] {
-            for (size_t i = 250; i < 500; ++i) {
-                for (size_t j = 0; j < 1000; ++j) {
-                    Vector v = matrix[i][j] - camera;
-                    Ray ray(camera, v);
-
-                    if (b.Intersect(ray).has_value()) {
-                        // cout << "YES" << endl;
-                        image.draw_point(i, j, color);
-                    }
-                }
-            }
-        });
-
-        auto c = async ( [&matrix, &b, &camera, &image, &color] {
-            for (size_t i = 500; i < 750; ++i) {
-                for (size_t j = 0; j < 1000; ++j) {
-                    Vector v = matrix[i][j] - camera;
-                    Ray ray(camera, v);
-
-                    if (b.Intersect(ray).has_value()) {
-                        // cout << "YES" << endl;
-                        image.draw_point(i, j, color);
-                    }
-                }
-            }
-        });
-
-        auto l = async ( [&matrix, &b, &camera, &image, &color] {
-            for (size_t i = 750; i < 1000; ++i) {
-                for (size_t j = 0; j < 1000; ++j) {
-                    Vector v = matrix[i][j] - camera;
-                    Ray ray(camera, v);
-
-                    if (b.Intersect(ray).has_value()) {
-                        // cout << "YES" << endl;
-                        image.draw_point(i, j, color);
-                    }
-                }
-            }
-        }); */
-
-        futures_.push_back(move(f)); /* futures_.push_back(move(g));
-        futures_.push_back(move(c)); futures_.push_back(move(l)); */
-
-
-        /* for (size_t i = 0; i < 1000; ++i) {
-            for (size_t j = 0; j < 1000; ++j) {
-                Vector v = matrix[i][j] - camera;
-                Ray ray(camera, v);
-
-                if (RayBox(b, ray).has_value()) {
-                    // cout << "YES" << endl;
-                    image.draw_point(i, j, color);
-                }
-            }
-        } */
-
-
-
-    }
-
-    image.save("test.bmp");
+   Render(screen, objects, colors);
 
    return 0;
 }

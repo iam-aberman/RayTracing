@@ -3,6 +3,7 @@
 //
 
 #include "utilities.h"
+#include "double_comparison.h"
 
 #include <array>
 #include <algorithm>
@@ -32,14 +33,9 @@ namespace Geometry3D {
     }
 
     std::istream& operator>>(std::istream& is, Primitive& primitive) {
-        // Point format:  (x_; y_; z_)
-        // Vector format: {x_; y_; z_}
-        is.ignore(1);
-        is >> primitive.x_;
-        is.ignore(1);
-        is >> primitive.y_;
-        is.ignore(1);
-        is >> primitive.z_;
+        is >> primitive.x_
+           >> primitive.y_
+           >> primitive.z_;
 
         return is;
     }
@@ -90,6 +86,12 @@ namespace Geometry3D {
         }
 
         return true;
+    }
+
+    bool operator==(const Primitive& lhs, const Primitive& rhs) {
+        return Equal(lhs.x_, rhs.x_) &&
+               Equal(lhs.y_, rhs.y_) &&
+               Equal(lhs.z_, rhs.z_);
     }
 
     std::ostream& operator<<(std::ostream& os, const Plane& surface) {

@@ -6,6 +6,7 @@
 #define RAYTRACING_PLANE_H
 
 #include "primitives.h"
+#include "double_comparison.h"
 
 #include <array>
 
@@ -17,17 +18,31 @@ namespace Geometry3D {
         Plane() = default;
         Plane(const Point& f, const Point& s, const Point& t);
 
-        void UpdateCoefs();
+        void UpdateCoefs() { // Intended to be inline
+            if (A_ < 0) {
+                A_ *= -1;
+                B_ *= -1;
+                C_ *= -1;
+                D_ *= -1;
+            }
+        }
 
-        std::array<double, 4> getCoefs() const;
-        Vector getNormal() const;
+        std::array<double, 4> getCoefs() const { // Intended to be inline
+            return {A_, B_, C_, D_};
+        }
 
+        Vector getNormal() const { // Intended to be inline
+            return Normalize({A_, B_, C_});
+        }
 
-        double A_, B_, C_, D_;
+        bool IsPointOnPlane(const Point& p) const { // Intended to be inline
+            return Equal((A_ * p.x_) + (B_ * p.y_) + (C_ * p.z_) + D_, 0.);
+        }
+
     private:
 
         // Ax + By + Cz + D = 0
-        // double A_, B_, C_, D_;
+        double A_, B_, C_, D_;
 
     };
 

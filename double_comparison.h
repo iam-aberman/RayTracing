@@ -6,10 +6,14 @@
 #define RAYTRACING_DOUBLE_COMPARISON_H
 
 #include <cmath>
-#include <limits>
+
+#ifndef EPSILON
+#define EPSILON 1e-10
 
 inline bool Equal(double lhs, double rhs) {
-    return fabs(lhs - rhs) < std::numeric_limits<double>::epsilon();
+    return fabs(lhs - rhs) < EPSILON;
 }
+
+#endif
 
 #endif //RAYTRACING_DOUBLE_COMPARISON_H

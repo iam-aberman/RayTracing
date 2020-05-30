@@ -9,21 +9,35 @@
 #include "plane.h"
 
 #include <array>
+#include <vector>
 #include <optional>
 #include <cmath>
+#include <string>
+#include <memory>
 
 namespace Geometry3D {
 
     std::optional<Point> RayPlaneIntersection(const Ray& ray, const Plane& plane);
     std::optional<double> RayTriangleIntersection(const Ray& ray,
-                                                 const std::array<Point, 3>& vertices);
+                                                  const std::array<Point, 3>& vertices);
 
     class Object {
     public:
 
-        virtual ~Object() = default;
+        Object(char type = 'O');
 
+        virtual ~Object() = default;
         virtual std::optional<Point> Intersect(const Ray& ray) const = 0;
+        virtual double DistanceToPoint(const Point& point) const = 0;
+
+        char getType() const { // Intended to be inline
+            return type_;
+        }
+
+    private:
+
+        const char type_;
+
     };
 
     class Sphere : public Object {
@@ -36,6 +50,7 @@ namespace Geometry3D {
         double getRadius() const;
 
         std::optional<Point> Intersect(const Ray& ray) const override;
+        double DistanceToPoint(const Point& point) const override;
 
     private:
 
@@ -51,6 +66,15 @@ namespace Geometry3D {
         Box(const Point& minPoint, const Point& maxPoint);
 
         std::optional<Point> Intersect(const Ray& ray) const override;
+        double DistanceToPoint(const Point& point) const override;
+
+        const Point& getMinVertex() const { // Intended to be inline
+            return minVertex_;
+        }
+
+        const Point& getMaxVertex() const { // Intended to be inline
+            return maxVertex_;
+        }
 
     private:
 
@@ -66,20 +90,19 @@ namespace Geometry3D {
                     const Point& C, const Point& D);
 
         const std::array<Point, 4>& getVertices() const;
-        const std::array<Plane, 4>& getSurfaces() const;
 
         std::optional<Point> Intersect(const Ray& ray) const override;
+        double DistanceToPoint(const Point& point) const override;
 
     private:
 
         std::array<Point, 4> vertices_;
-        std::array<Plane, 4> surfaces_;
 
     };
 
-    // std::optional<Point> RayBox(const Box& box, const Ray& ray);
-
 }
+
+std::vector<std::shared_ptr<Geometry3D::Object>> LoadObjects(const std::string& filename);
 
 
 #endif //RAYTRACING_SCENE_OBJECTS_H

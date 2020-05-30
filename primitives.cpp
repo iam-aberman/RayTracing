@@ -4,9 +4,6 @@
 
 #include "primitives.h"
 
-#include <array>
-#include <cmath>
-
 namespace Geometry3D {
 
     Primitive::Primitive(char type) : x_(0.), y_(0.), z_(0.), type_(type)
@@ -61,18 +58,6 @@ namespace Geometry3D {
     {
     }
 
-    void Vector::Normalize() {
-        const double curLen = getAbs();
-
-        x_ /= curLen;
-        y_ /= curLen;
-        z_ /= curLen;
-    }
-
-    double Vector::getAbs() const {
-        return sqrt(x_ * x_ + y_ * y_ + z_ * z_);
-    }
-
     Vector Normalize(const Vector& v) {
         Vector temp(v);
         temp.Normalize();
@@ -90,12 +75,4 @@ namespace Geometry3D {
     {
     }
 
-   /*  const Point& Ray::getOrigin() const {
-        return origin_;
-    }
-
-    const Vector& Ray::getDirection() const {
-        return direction_;
-    }
-*/
 }

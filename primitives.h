@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <array>
+#include <cmath>
 
 namespace Geometry3D {
 
@@ -56,8 +57,17 @@ namespace Geometry3D {
         Vector(const Vector& other) = default;
         using Primitive::operator=;
 
-        void Normalize();
-        double getAbs() const;
+        void Normalize() { // Intended to be inline
+            const double curLen = getAbs();
+
+            x_ /= curLen;
+            y_ /= curLen;
+            z_ /= curLen;
+        }
+
+        double getAbs() const {
+            return sqrt(x_ * x_ + y_ * y_ + z_ * z_);
+        }
 
     };
 

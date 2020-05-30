@@ -17,4 +17,4 @@ add_executable(RayTracing
         scene_objects.cpp
         scene_objects.h
         utilities.cpp
-        utilities.h screen.cpp screen.h)
+        utilities.h screen.cpp screen.h lighting.cpp lighting.h)

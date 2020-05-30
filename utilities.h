@@ -23,6 +23,7 @@ namespace Geometry3D {
     Vector operator*(const Vector& v, double lambda);
 
     bool Collinear(const Vector& lhs, const Vector& rhs);
+    bool operator==(const Primitive& lhs, const Primitive& rhs);
 
     inline double ScalarProduct(const Vector& lhs, const Vector& rhs) {
         return lhs.x_ * rhs.x_ +
