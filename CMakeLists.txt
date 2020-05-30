@@ -4,7 +4,7 @@ project(RayTracing)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(/usr/X11/include)
-set(CMAKE_CXX_FLAGS "-Dcimg_display=0")
+set(CMAKE_CXX_FLAGS "-Dcimg_display=0 -pthread")
 
 add_executable(RayTracing
         double_comparison.h
